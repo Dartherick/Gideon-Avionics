@@ -1,25 +1,24 @@
 /***************************************************************************
-  This is a library for the BMP3XX temperature & pressure sensor
+  This is a library for the BMP581 temperature & pressure sensor
 
-  Designed specifically to work with the Adafruit BMP388 Breakout
-  ----> http://www.adafruit.com/products/3966
+  Designed specifically to work with the Adafruit BMP581 Breakout
+  ----> http://www.adafruit.com/products/5611
 
-  These sensors use I2C or SPI to communicate, 2 or 4 pins are required
+  These sensors use I2C, SPI, or I3C to communicate, 2 or 4 pins are required
   to interface.
 
   Adafruit invests time and resources providing this open source code,
   please support Adafruit and open-source hardware by purchasing products
   from Adafruit!
 
-  Written by Limor Fried & Kevin Townsend for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
+  Adapted from original Gideon Mk1 avionics logger codebase.
  ***************************************************************************/
 
 #define SERIAL_DEBUG 0
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
-#include "Adafruit_BMP3XX.h"
+#include <Adafruit_BMP581.h>
 #include <Adafruit_BNO08x.h>
 #include <SPI.h>
 #include <SD.h>
@@ -42,7 +41,7 @@ sh2_SensorValue_t sensorValue;
 #define RED_LED_PORT 13
 
 // instantiate program object for BMP sensor on I2C bus
-Adafruit_BMP3XX bmp;
+Adafruit_BMP581 bmp;
 
 // These variables accumulate the most current data as it arrives, for later reporting
 double Time, Baro, TempC, TempF, BaroCal, AltiM, AltiF, AccelX, AccelY, AccelZ, GyroX, GyroY, GyroZ, MagX, MagY, MagZ, LAccX, LAccY, LAccZ, GravX, GravY, GravZ, RotTheta, RotI, RotJ, RotK, GeoRotTheta, GeoRotI, GeoRotJ, GeoRotK, GameRotTheta, GameRotI, GameRotJ, GameRotK;
@@ -103,9 +102,9 @@ void setup() {
   Serial.println("BNO08x Found!");
 #endif
   setReports(); // Chose what data we want to recieve from IMU
-  if (!bmp.begin_I2C()) {   // hardware I2C mode, can pass in address & alt Wire
+  if (!bmp.begin_I2C(0x47)) {   // hardware I2C mode, 0x47 default for BMP581
 #ifdef SERIAL_DEBUG
-    Serial.println("Could not find a valid BMP3 sensor, check wiring!");
+    Serial.println("Could not find a valid BMP5 sensor, check wiring!");
 #endif
     while (1);
   }
@@ -114,10 +113,10 @@ void setup() {
   setupSD();
 
   // Set up BMP with oversampling and filter initialization
-  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+  bmp.setTemperatureOversampling(BMP5_OVERSAMPLING_8X);
+  bmp.setPressureOversampling(BMP5_OVERSAMPLING_4X);
+  bmp.setIIRFilterCoeff(BMP5_IIR_FILTER_COEFF_3);
+  bmp.setOutputDataRate(BMP5_ODR_50_HZ);
 #ifdef SERIAL_DEBUG
   printCSVHeader(Serial);
 #endif
